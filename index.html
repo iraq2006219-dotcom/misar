@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مِسار</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#697386;--border:#e7eaf0;--accent:#273bff;--accentbg:#f1f3ff;--pill:#eef0f5;--done:#17844b;--locked:#9aa3b2}
+[data-theme="dark"]{--bg:#0e1117;--card:#161b25;--text:#eef1f7;--muted:#8b93a7;--border:#262c3a;--accent:#5b7cff;--accentbg:#1b2440;--pill:#1e2433;--done:#3ddc84;--locked:#5a6377}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);transition:background .2s,color .2s}
+.app{max-width:520px;margin:auto;min-height:100vh;background:var(--card)}
+header{padding:22px 20px 10px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:27px;font-weight:800}.tag{font-size:12px;color:var(--muted)}
+.themebtn{border:1px solid var(--border);background:var(--pill);border-radius:12px;width:40px;height:40px;font-size:18px;cursor:pointer}
+main{padding:18px 20px 90px}.hero{padding:24px 4px 18px}.hero h1{font-size:30px;margin:0 0 10px}.hero p{color:var(--muted);line-height:1.8}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{border:1px solid var(--border);border-radius:18px;padding:17px;background:var(--card);cursor:pointer}.card.active{border-color:var(--accent);background:var(--accentbg)}.icon{font-size:25px}.card b{display:block;margin-top:8px}.muted{color:var(--muted);font-size:13px}
+.btn{width:100%;border:0;border-radius:16px;padding:15px;background:var(--accent);color:#fff;font-size:17px;font-weight:700;margin-top:18px;cursor:pointer}
+.secondary{background:var(--pill);color:var(--text)}.input{width:100%;padding:15px;border:1px solid var(--border);border-radius:14px;font-size:16px;margin-top:10px;background:var(--card);color:var(--text)}
+.progress{height:10px;background:var(--pill);border-radius:20px;overflow:hidden}.progress span{display:block;height:100%;width:20%;background:var(--accent)}
+.skill{padding:15px;border:1px solid var(--border);border-radius:16px;margin:10px 0}.skill .row{display:flex;justify-content:space-between}.done{color:var(--done)}.locked{color:var(--locked)}.current{border-color:var(--accent);background:var(--accentbg)}
+.nav{position:fixed;bottom:0;left:0;right:0;max-width:520px;margin:auto;background:var(--card);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:11px}.nav button{border:0;background:none;color:var(--muted);font-size:12px}.nav button.active{color:var(--accent);font-weight:700}
+.hidden{display:none}.pill{display:inline-block;background:var(--pill);color:var(--text);border-radius:30px;padding:7px 11px;font-size:12px;margin:3px}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div><div class="logo">مِسار</div><div class="tag">من التشتت إلى المهارة</div></div><button class="themebtn" onclick="toggleTheme()" id="themebtn">🌙</button></header>
+<main id="main"></main>
+<div class="nav">
+<button onclick="show('home')" id="n-home">الرئيسية</button>
+<button onclick="show('path')" id="n-path">مساري</button>
+<button onclick="show('progress')" id="n-progress">تقدمي</button>
+</div>
+</div>
+<script>
+let state={goal:null,level:null,time:null,step:0};
+try{let sv=localStorage.getItem('misar-progress');if(sv)state=JSON.parse(sv)}catch(e){}
+function saveState(){try{localStorage.setItem('misar-progress',JSON.stringify(state))}catch(e){}}
+const goals=[
+["🤖","الذكاء الاصطناعي","AI وأدواته"],["📈","التسويق الرقمي","Marketing"],["🎬","صناعة المحتوى","Content"],["💻","البرمجة","Apps & Web"],["💰","العمل أونلاين","Freelance"]
+];
+const SK=[
+[{t:"أساسيات AI",d:"افهم شنو يعني الذكاء الاصطناعي وشلون يشتغل بأبسط شكل، بدون تعقيد تقني.",s:["اتفرج فيديو قصير يشرح الفرق بين AI و ChatGPT","دوّن بجملة وحدة شنو فهمته عن AI","جرب تفتح ChatGPT أو Claude وتسأله سؤال بسيط"]},
+{t:"استخدام أدوات AI",d:"تعرف على أهم أدوات AI المتوفرة (نص، صورة، فيديو، صوت) ومتى تستخدم كل وحدة.",s:["جرب 3 أدوات AI مختلفة (نص، صورة، فيديو)","سوي جدول بسيط: اسم الأداة + شنو تسوي","اختار أداة وحدة تعتمدها كأساس لشغلك"]},
+{t:"صياغة التعليمات",d:"تعلم شلون تكتب طلب (Prompt) واضح يخلي الذكاء الاصطناعي يعطيك نتيجة ممتازة من أول مرة.",s:["اكتب نفس الفكرة بـ3 صياغات مختلفة وقارن النتايج","اضف للبرومبت: الدور + الهدف + الأسلوب + الطول","احفظ أفضل برومبت نجح وياك"]},
+{t:"Automation",d:"اربط أدوات مع بعض عشان تسوي مهمة متكررة تلقائياً بدون ما تسويها يدوياً كل مرة.",s:["اختار مهمة تتكرر عندك يومياً","دور على أداة أتمتة بسيطة مجانية وشوف شلون تربطها","جرب تسوي أتمتة وحدة بسيطة وشغلها"]},
+{t:"AI Agents",d:"الـ Agent نظام AI يقدر ياخذ قرارات وينفذ خطوات متعددة لحاله عشان يحقق هدف.",s:["اقرا أو اتفرج شرح بسيط شنو يعني AI Agent","جرب أداة فيها خاصية Agent","دوّن فكرة مهمة تحب تفوضها لـ Agent بالمستقبل"]},
+{t:"مشروع عملي",d:"طبّق كل اللي تعلمته بمشروع حقيقي صغير تكدر تعرضه أو تستفاد منه.",s:["اختار مشروع صغير (فيديو، بوست، أداة بسيطة)","نفذه: فكرة → تنفيذ بـAI → مراجعة","انشره أو احفظه كنموذج تفتخر بيه"]}],
+[{t:"أساسيات التسويق",d:"افهم الفرق بين المنتج والعلامة التجارية والتسويق، وشلون توصل رسالتك للناس الصح.",s:["دوّن: شنو المنتج/الخدمة اللي تسوقلها؟","اكتب جملة تلخص لية الناس تحتاج هذا الشي","قارن نفسك بمنافس وشوف شنو يميزك"]},
+{t:"فهم الجمهور",d:"لازم تعرف مين بالضبط تسوق إله قبل لا تفكر شنو تكتب أو تصمم.",s:["اكتب وصف شخص وهمي يمثل جمهورك","دور على 3 حسابات ينشرون لنفس جمهورك","اسأل 2-3 أشخاص حقيقيين شنو يحتاجون"]},
+{t:"صناعة المحتوى",d:"المحتوى هو الجسر بينك وبين جمهورك — لازم يكون مفيد أو ممتع.",s:["اكتب 3 أفكار محتوى مرتبطة بجمهورك","سوي محتوى بسيط (بوست أو فيديو قصير)","انشره وراقب شلون تفاعل الناس"]},
+{t:"الإعلانات",d:"الإعلان المدفوع يوصلك لناس أسرع من المحتوى العضوي، بس لازم يكون مستهدف صح.",s:["اتفرج شرح بسيط عن إعلانات فيسبوك أو تيكتوك","حدد ميزانية تجريبية صغيرة جداً","اكتب نص إعلان بسيط لمنتجك"]},
+{t:"التحليل",d:"بدون تحليل ما تعرف شنو يشتغل وشنو لا — الأرقام تقولك الحقيقة.",s:["افتح إحصائيات حساب عندك","دوّن أعلى بوست تفاعل وليش تتوقع نجح","قرر شي وحد تغيره بالأسبوع الجاي"]},
+{t:"مشروع عملي",d:"طبّق كل شي تعلمته بحملة تسويقية صغيرة حقيقية.",s:["اختار منتج/فكرة تسوقلها كتجربة","سوي خطة أسبوع: محتوى + جمهور + رسالة","نفذها وقيّم النتيجة"]}],
+[{t:"الأساسيات",d:"تعرف شنو يعني صانع محتوى، وشنو الفرق بين منصة وأخرى.",s:["حدد منصة وحدة تبدأ بيها","اتفرج 3 فيديوهات ناجحة بمجالك ودوّن ليش نجحت","اكتب هدفك من المحتوى بجملة وحدة"]},
+{t:"فهم الجمهور",d:"لازم تعرف مين يتفرج عليك وشنو يحبون يشوفون.",s:["اكتب وصف المشاهد المثالي إلك","دور شنو أكثر شي يهتمون بيه بمجالك","لاحظ التعليقات على فيديوهات مشابهة"]},
+{t:"كتابة السيناريو",d:"أي فيديو ناجح أساسه سيناريو واضح: بداية تجذب، منتصف يفيد، نهاية توصل رسالة.",s:["اكتب سيناريو من 3 جمل: هوك + فكرة + خاتمة","اقرا السيناريو بصوت عالي وشوف طوله مناسب","عدل الهوك لين يصير قوي بأول 3 ثواني"]},
+{t:"التصوير والمونتاج",d:"ما تحتاج معدات غالية — تحتاج تعرف أساسيات التصوير الواضح والمونتاج البسيط.",s:["صور مشهد قصير بموبايلك بإضاءة كويسة","جرب تطبيق مونتاج مجاني بسيط","قص أول 3 ثواني منه يكون جذاب"]},
+{t:"النشر والتحليل",d:"وكت النشر والوصف والهاشتاغ يأثرون بنسبة وصول الفيديو مثل المحتوى نفسه.",s:["انشر فيديو بوكت مناسب لجمهورك","اكتب وصف وهاشتاغات مرتبطة بالمحتوى","بعد 24 ساعة راجع الإحصائيات"]},
+{t:"مشروع عملي",d:"سوي فيديو كامل من الفكرة لين النشر مطبق كل الخطوات.",s:["اختار فكرة فيديو وحدة","نفذها: سيناريو → تصوير → مونتاج → نشر","قيّم النتيجة وحدد شنو تحسنه بالجاي"]}],
+[{t:"أساسيات البرمجة",d:"افهم شلون يفكر المبرمج: خطوات منطقية متسلسلة تحل مشكلة معينة.",s:["اتفرج شرح بسيط شنو يعني كود ولغة برمجة","جرب تكتب أول سطر كود بلغة بسيطة","دوّن الفرق بين Frontend و Backend"]},
+{t:"اختيار لغة/مجال",d:"فيه مجالات مختلفة (مواقع، تطبيقات، ذكاء اصطناعي) — اختيار وحد يركز جهدك.",s:["قارن بين تطوير مواقع، تطبيقات، وAI","اختار مجال وحد تبدأ بيه هالفترة","دور على كورس مجاني بسيط بهذا المجال"]},
+{t:"التطبيق العملي",d:"البرمجة تتعلم بالتطبيق مو بالحفظ — كل ما تكتب كود أكثر تتحسن أسرع.",s:["اكتب برنامج صغير جداً (آلة حاسبة مثلاً)","صلح أي خطأ بنفسك قبل ما تدور مساعدة","كرر نفس التمرين بطريقة مختلفة"]},
+{t:"أدوات المطور",d:"فيه أدوات تسهل عليك الكتابة والتنظيم متل محرر الكود و Git.",s:["نزل محرر كود بسيط (VS Code)","جرب تسوي وتحفظ ملف كود وتشغله","اتعلم أساسيات Git لحفظ نسخ من شغلك"]},
+{t:"حل المشاكل",d:"المبرمج الحقيقي يعرف شلون يدور الحل مو يحفظ كل شي بمخه.",s:["لما يطلعلك خطأ، انسخ رسالته ودور عليها بگوگل","جرب تحل مشكلة بسيطة بنفسك قبل ما تسأل AI","دوّن الحل اللي لقيته لو احتجته بالمستقبل"]},
+{t:"مشروع عملي",d:"سوي مشروع صغير كامل يثبت قدرتك على البرمجة الفعلية.",s:["اختار فكرة تطبيق/موقع بسيط","ابنيه خطوة بخطوة بدون استعجال","شاركه أو احفظه بملفك الشخصي"]}],
+[{t:"أساسيات العمل الحر",d:"افهم شلون يشتغل العمل الحر: تقدم خدمة، تحدد سعر، تسلم شغل بوكت.",s:["حدد شنو الخدمة اللي تقدر تقدمها الحين","دور على منصة عمل حر مناسبة","اقرا كيف تشتغل المنصة قبل لا تسجل عرض"]},
+{t:"بناء ملفك الشخصي",d:"ملفك (Portfolio) هو أول شي يشوفه العميل، ولازم يبين شغلك بوضوح.",s:["اجمع 2-3 نماذج شغل (حتى لو تجريبية)","اكتب وصف بسيط عن خدماتك","صمم صفحة أو ملف بسيط يجمع هذا كله"]},
+{t:"التسعير والعروض",d:"تسعير صح يخليك تكسب بدون ما تخسر وكتك أو تخوف العميل.",s:["دور على أسعار خدمات مشابهة بالسوق","حدد سعر تجريبي لأول 3 مشاريع","اكتب عرض بسيط وواضح لمشروع تجربة"]},
+{t:"التواصل مع العملاء",d:"طريقة ردك ووضوحك يأثرون على قبول العميل إلك أكثر من السعر أحياناً.",s:["اكتب رسالة تعريفية قصيرة ومحترفة","تمرن على الرد بسرعة ووضوح على استفسار وهمي","حدد وكت رد ثابت تلتزم بيه"]},
+{t:"التسويق لنفسك",d:"لازم الناس تعرف إنك موجود وتقدم خدمة — ما ينتظرون يلقونك.",s:["انشر نموذج من شغلك بحساب لك","اكتب بوست يعرف الناس بخدمتك","اطلب من شخص قريب يشاركه أو يعطيك رأي"]},
+{t:"مشروع عملي",d:"نفذ أول مشروع حقيقي (حتى لو بسعر رمزي) عشان تكسب خبرة وتقييم.",s:["دور على أول مشروع بسيط تقدر تسويه","نفذه بأعلى جودة ممكنة وسلمه بوكته","اطلب تقييم من العميل لو ممكن"]}]
+];
+const RES=[
+{ar:["Coursera - AI For Everyone","https://www.coursera.org/learn/ai-for-everyone"],en:["Elements of AI","https://www.elementsofai.com"]},
+{ar:["Google - شهادة التسويق الرقمي","https://grow.google/intl/mena/google-career-certificates/digital-marketing-ecommerce/"],en:["Google Digital Garage","https://learndigital.withgoogle.com/digitalgarage"]},
+{ar:["YouTube Creator Academy","https://creatoracademy.youtube.com"],en:["YouTube Creators","https://www.youtube.com/@YouTubeCreators"]},
+{ar:["Elzero Web School","https://elzero.org"],en:["freeCodeCamp","https://www.freecodecamp.org"]},
+{ar:["مستقل - منصة عمل حر","https://mostaql.com"],en:["Upwork","https://www.upwork.com"]}
+];
+function render(c){document.getElementById('main').innerHTML=c;saveState()}
+function show(page){
+document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+let b=document.getElementById('n-'+page);if(b)b.classList.add('active');
+if(page==='home')home();if(page==='path')path();if(page==='progress')progress()
+}
+function home(){
+render(`<section class="hero"><h1>اعرف وجهتك، وابنِ مهارتك.</h1><p>مِسار يرتب لك المهارات حسب هدفك ووقتك، حتى تتعلم بدون تشتت.</p>
+<h3>شنو تريد تحقق؟</h3><div class="grid">${goals.map((g,i)=>`<div class="card ${state.goal===i?'active':''}" onclick="state.goal=${i};home()"><span class="icon">${g[0]}</span><b>${g[1]}</b><span class="muted">${g[2]}</span></div>`).join('')}</div>
+${state.goal!==null?`<h3>مستواك الحالي</h3><div class="grid">${['مبتدئ','أساسي','متوسط','متقدم'].map((x,i)=>`<div class="card ${state.level===i?'active':''}" onclick="state.level=${i};home()"><b>${x}</b></div>`).join('')}</div>
+<h3>وقت التعلم يومياً</h3><div class="grid">${['15 دقيقة','30 دقيقة','ساعة','ساعتين+'].map((x,i)=>`<div class="card ${state.time===i?'active':''}" onclick="state.time=${i};home()"><b>${x}</b></div>`).join('')}</div>
+<button class="btn" onclick="makePath()">ابنِ مساري 🚀</button>`:''}</section>`)
+}
+function makePath(){if(state.goal===null||state.level===null||state.time===null){alert('اختار الهدف والمستوى والوقت أولاً');return}state.step=0;show('path')}
+function path(){
+let name=goals[state.goal]?.[1]||'هدفك';
+let skills=SK[state.goal];
+let r=RES[state.goal];
+render(`<h2>🎯 مسارك</h2><p class="muted">هدفك: ${name}</p>
+<div style="display:flex;gap:8px;margin:10px 0 18px">
+<a href="${r.ar[1]}" target="_blank" class="pill" style="flex:1;text-align:center;text-decoration:none;padding:12px 8px">🇮🇶 ${r.ar[0]}</a>
+<a href="${r.en[1]}" target="_blank" class="pill" style="flex:1;text-align:center;text-decoration:none;padding:12px 8px">🌍 ${r.en[0]}</a>
+</div>
+<div class="progress"><span style="width:${Math.max(8,state.step/6*100)}%"></span></div>
+${skills.map((s,i)=>`<div class="skill ${i===state.step?'current':''}" onclick="${i<=state.step?`state.step=${i};task()`:''}"><div class="row"><b>${i<state.step?'✅':i===state.step?'🔵':'🔒'} ${s.t}</b><span class="${i<state.step?'done':i>state.step?'locked':''}">${i<state.step?'مكتملة':i===state.step?'أنت هنا':'لاحقاً'}</span></div>${i===state.step?`<p class="muted" style="margin:8px 0 0">${s.d}</p>`:''}</div>`).join('')}
+${state.step<skills.length?`<button class="btn" onclick="task()">مهمة اليوم →</button>`:`<button class="btn" onclick="progress()">عرض تقدمي 🏆</button>`}`)}
+function task(){
+let sk=SK[state.goal][state.step];
+render(`<h2>🎯 ${sk.t}</h2><p>${sk.d}</p><div class="skill current" style="margin-top:14px"><b>خطوات اليوم:</b>${sk.s.map(x=>`<div class="row" style="margin-top:8px"><span>▫️ ${x}</span></div>`).join('')}</div><textarea class="input" rows="5" placeholder="دوّن ملاحظاتك أو تجربتك هنا..."></textarea><button class="btn" onclick="state.step++;path()">أنجزت المهمة ✓</button><button class="btn secondary" onclick="path()">رجوع</button>`)}
+function progress(){
+let pct=Math.round(Math.min(100,state.step/6*100));
+render(`<h2>📊 تقدمي</h2><p>هدفك: ${state.goal===null?'لم تحدد بعد':goals[state.goal][1]}</p><div class="progress"><span style="width:${pct}%"></span></div><h3>${pct}%</h3><div class="skill"><b>🏆 المهارات المثبتة</b><p class="muted">كل مهارة تثبتها من خلال التعلم + التطبيق + المشروع.</p></div><button class="btn" onclick="show('home')">تعديل المسار</button><button class="btn secondary" onclick="if(confirm('متأكد تريد تبدأ من جديد؟ راح يمسح كل تقدمك')){state={goal:null,level:null,time:null,step:0};show('home')}">إعادة البدء من الصفر</button>`)
+}
+function toggleTheme(){
+let cur=document.documentElement.getAttribute('data-theme');
+let next=cur==='dark'?'light':'dark';
+document.documentElement.setAttribute('data-theme',next);
+document.getElementById('themebtn').textContent=next==='dark'?'☀️':'🌙';
+try{localStorage.setItem('misar-theme',next)}catch(e){}
+}
+try{
+let saved=localStorage.getItem('misar-theme');
+let prefDark=window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+let theme=saved||(prefDark?'dark':'light');
+document.documentElement.setAttribute('data-theme',theme);
+}catch(e){}
+show('home');
+window.addEventListener('DOMContentLoaded',()=>{let t=document.documentElement.getAttribute('data-theme');let b=document.getElementById('themebtn');if(b)b.textContent=t==='dark'?'☀️':'🌙'});
+</script>
+</body>
+</html>
